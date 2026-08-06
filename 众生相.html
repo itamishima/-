@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸鸢 Kite - 众生相</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;700&display=swap');
+        body{margin:0;padding:0;background:#FAFAFA;display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:"Noto Serif SC",serif;color:#111;overflow-x:hidden;user-select:none}
+        input,textarea,select{user-select:text}
+        .void-canvas{width:375px;height:850px;position:relative;background:#FAFAFA;box-shadow:0 0 50px rgba(0,0,0,.03);overflow:hidden}
+        .page-layer{position:absolute;top:0;left:0;width:100%;height:100%;display:none;animation:fadeIn .5s ease}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .bottom-signature{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);text-align:center;z-index:900;font-family:"Noto Serif SC","SimSun",serif;font-size:9px;color:#8A0303;letter-spacing:2px;white-space:nowrap}
+        .abstract-menu{position:absolute;top:40px;left:12px;writing-mode:vertical-rl;font-family:Helvetica,sans-serif;font-size:8px;color:#ccc;letter-spacing:6px;z-index:999}
+        .abstract-menu span{margin-bottom:18px;cursor:pointer;transition:.3s}
+        .abstract-menu span:hover{color:#111}
+        .abstract-menu span.active{color:#8A0303;font-weight:bold;font-family:"Noto Serif SC",serif;font-size:10px}
+        .page-title{position:absolute;top:50px;right:30px;text-align:right;z-index:50}
+        .page-title .zh{font-size:24px;font-weight:700;letter-spacing:4px}
+        .page-title .en{font-family:Helvetica,sans-serif;font-size:8px;color:#8A0303;letter-spacing:2px;margin-top:4px;font-weight:bold}
+        .manifest-btn{position:absolute;bottom:60px;display:flex;flex-direction:column;gap:8px;cursor:pointer;z-index:100}
+        .btn-graphic{width:15px;height:15px;background:#111;transition:.4s;position:relative}
+        .btn-graphic::after{content:'';position:absolute;top:-5px;right:-5px;width:5px;height:5px;background:#8A0303;transition:.4s}
+        .manifest-btn:hover .btn-graphic{transform:rotate(90deg);background:#8A0303}
+        .manifest-btn:hover .btn-graphic::after{background:#111}
+        .btn-text{font-size:12px;letter-spacing:4px;font-weight:bold;color:#111}
+        .btn-right{right:40px;align-items:flex-end}
+        .btn-left{left:70px;transform:translateX(-50%);align-items:center}
+        .btn-center{left:50%;transform:translateX(-50%);align-items:center}
+        .red-tag{font-family:"Courier New",monospace;font-size:10px;color:#8A0303;font-weight:bold;letter-spacing:2px;margin-bottom:6px}
+        .void-input{position:absolute;z-index:15}
+        .tag-line{font-family:Helvetica,sans-serif;font-size:8px;font-weight:bold;color:#8A0303;letter-spacing:2px;margin-bottom:5px}
+        textarea,input{background:transparent;border:none;outline:none;resize:none;font-family:"Noto Serif SC",serif;font-size:11px;color:#111}
+        textarea.free-text{width:140px;height:60px;line-height:1.8;border-bottom:.5px solid transparent;transition:.3s}
+        textarea.free-text:focus{border-bottom:.5px solid #8A0303}
+        textarea::placeholder,input::placeholder{color:#bbb;font-weight:300}
+        .text-right{text-align:right}.text-right .tag-line{text-align:right}
+        .code-input{background:transparent;border:none;border-bottom:.5px solid #888;font-family:"Courier New",monospace;font-size:11px;color:#111;padding:5px 0;width:220px;outline:none;transition:.3s;letter-spacing:2px}
+        .code-input:focus{border-color:#8A0303}
+        .code-input::placeholder{color:#ccc;letter-spacing:1px;font-family:"Noto Serif SC",serif}
+        select.code-input{appearance:none;-webkit-appearance:none;cursor:pointer;color:#8A0303;font-weight:bold}
+        .sketch-input{background:transparent;border:none;border-bottom:.5px solid #888;font-family:"Noto Serif SC",serif;font-size:12px;color:#111;padding:8px 0;width:180px;outline:none;transition:.3s}
+        .sketch-input:focus{border-color:#8A0303}.sketch-input::placeholder{color:#bbb}
+        .red-web{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+        .aesthetic-polaroid{position:absolute;width:95px;padding:6px 6px 28px 6px;background:#fff;box-shadow:10px 25px 40px rgba(0,0,0,.08);z-index:20;transition:.4s ease}
+        .aesthetic-polaroid:hover{transform:scale(1.05) rotate(0deg)!important;z-index:100;box-shadow:0 10px 20px rgba(0,0,0,.15)}
+        .img-box{width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;filter:grayscale(30%) contrast(1.1)}
+        .photo-code{position:absolute;bottom:8px;left:0;width:100%;text-align:center;font-family:"Courier New",monospace;font-size:8px;color:#8A0303;font-weight:bold;letter-spacing:1px}
+        .absolute-pin{position:absolute;width:6px;height:6px;background:#111;border-radius:50%;box-shadow:1px 2px 4px rgba(0,0,0,.3);z-index:30}
+       .node-icon{position:absolute;width:28px;height:auto;z-index:5;pointer-events:none}
+        .option-block{position:absolute;z-index:10}
+        .opt-label{font-size:15px;font-weight:700;letter-spacing:2px;margin-bottom:12px}
+        .opt-choices{font-size:11px;color:#aaa;letter-spacing:1px;line-height:2;width:220px}
+        .choice{cursor:pointer;transition:.3s}.choice:hover{color:#555}
+        .choice.active{color:#8A0303;font-weight:bold;border-bottom:1px solid #8A0303;padding-bottom:2px}
+        .slash{margin:0 4px;color:#ddd;font-family:sans-serif}
+        .void-line-input{border:none;border-bottom:.5px solid #888;background:transparent;font-family:"Noto Serif SC",serif;padding:5px 0;width:240px;transition:.3s;font-size:12px;color:#111;outline:none}
+        .void-line-input:focus{border-color:#8A0303}.text-right .opt-choices{width:auto;margin-left:auto}
+        .radar-system{position:absolute;top:320px;left:50%;transform:translate(-50%,-50%);width:260px;height:260px;pointer-events:none;z-index:1}
+        .radar-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:.5px solid rgba(0,0,0,.1);border-radius:50%}
+        .radar-system .c1{width:100px;height:100px}.radar-system .c2{width:180px;height:180px;border-style:dashed;border-color:rgba(138,3,3,.3)}.radar-system .c3{width:260px;height:260px}
+        .variable-slot{position:absolute;z-index:10}
+        .unknown-data{font-family:"Courier New",monospace;font-size:14px;letter-spacing:4px;background:repeating-linear-gradient(45deg,#eee,#eee 2px,transparent 2px,transparent 4px);-webkit-background-clip:text;color:transparent;transition:.3s}
+        .roll-trigger{position:absolute;top:620px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:15px;cursor:pointer;z-index:50}
+        .roll-btn-icon{width:40px;height:40px;border-radius:50%;border:1px solid #111;position:relative;transition:.4s;display:flex;justify-content:center;align-items:center}
+        .roll-btn-icon::before{content:'';position:absolute;width:1px;height:60px;background:#8A0303;transition:.4s}
+        .roll-btn-icon::after{content:'';position:absolute;width:6px;height:6px;background:#111;border-radius:50%;transition:.4s}
+        .roll-trigger:hover .roll-btn-icon{border-color:#8A0303;transform:rotate(90deg)}
+        .system-spine{position:absolute;top:120px;left:50%;width:.5px;height:600px;background:rgba(0,0,0,.1);z-index:1}
+        .deconstructed-slider{position:relative;width:200px;height:10px;margin-top:15px;display:flex;align-items:center;cursor:ew-resize}
+        .slider-track{position:absolute;width:100%;height:.5px;background:#ccc;pointer-events:none}
+        .slider-fill{position:absolute;width:37.5%;height:.5px;background:#8A0303;pointer-events:none}
+        .slider-thumb{position:absolute;left:37.5%;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:6px;height:6px;background:#111;pointer-events:none}
+        .slider-value{position:absolute;right:-30px;font-family:"Courier New",monospace;font-size:10px;color:#8A0303;font-weight:bold;pointer-events:none}
+        .void-box-input{background:rgba(0,0,0,.02);border:none;border-left:2px solid #111;padding:10px 15px;width:220px;height:60px;font-family:"Noto Serif SC",serif;font-size:11px;color:#111;line-height:1.6;outline:none;transition:.3s;resize:none}
+        .void-box-input:focus{border-left-color:#8A0303;background:transparent}
+        #result-modal{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(250,250,250,.95);backdrop-filter:blur(5px);z-index:2000;display:none;flex-direction:column;padding:60px 30px;box-sizing:border-box;animation:fadeIn .4s ease}
+        #result-text{flex:1;width:100%;background:transparent;border:none;border-left:2px solid #8A0303;padding-left:15px;font-family:"Noto Serif SC",serif;font-size:13px;line-height:1.8;color:#111;outline:none;resize:none;margin-top:20px}
+    </style>
+</head>
+<body>
+<div class="void-canvas">
+    <div class="bottom-signature">「 刃位错 · 众生相 」</div>
+    <div class="abstract-menu">
+        <span id="nav-1" class="active" onclick="switchPage(1)">01 [ 汲引 ]</span>
+        <span id="nav-2" onclick="switchPage(2)">02 [ 捏造 ]</span>
+        <span id="nav-3" onclick="switchPage(3)">03 [ 拼图 ]</span>
+        <span id="nav-4" onclick="switchPage(4)">04 [ 盲盒 ]</span>
+        <span id="nav-5" onclick="switchPage(5)">05 [ 枢纽 ]</span>
+        <span id="nav-6" onclick="switchPage(6)">06 [ 卷宗 ]</span>
+    </div>
+
+    <!-- PAGE 01: 汲引 -->
+    <div id="page-1" class="page-layer" style="display:block;">
+        <div class="page-title"><div class="zh">众生相</div><div class="en">THE_MASSES</div></div>
+        <svg class="red-web" viewBox="0 0 375 850" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 92,130 C 180,90 250,200 290,320" stroke="#8A0303" stroke-width="0.5" fill="none"/>
+            <circle cx="290" cy="320" r="10" stroke="#8A0303" stroke-width="0.5" fill="none" opacity="0.6"/>
+            <path d="M 290,320 C 150,450 180,500 97,560" stroke="#8A0303" stroke-width="0.5" fill="none"/>
+            <line x1="97" y1="560" x2="260" y2="730" stroke="#111" stroke-width="0.3" stroke-dasharray="2 2"/>
+        </svg>
+        <div class="absolute-pin" style="top:127px;left:89px;background:#8A0303;"></div>
+        <div class="absolute-pin" style="top:317px;left:287px;"></div>
+        <div class="absolute-pin" style="top:557px;left:94px;"></div>
+        <div class="aesthetic-polaroid" style="top:132px;left:45px;transform:rotate(-5deg);"><div class="img-box" style="background-image:url('https://img.heliar.top/file/1778717764939_IMG_3592.png');"></div><div class="photo-code">[ THE_VOID ]</div></div>
+        <div class="void-input" style="top:160px;left:160px;"><div class="tag-line">00 / NULL</div><div style="font-size:9px;color:#888;font-family:'Courier New',monospace;letter-spacing:2px;line-height:1.5;">ERROR: SIGNAL LOST.<br>AWAITING CONNECTION.</div></div>
+        <div class="aesthetic-polaroid" style="top:322px;right:37px;transform:rotate(4deg);"><div class="img-box" style="background-image:url('https://img.heliar.top/file/1778717770867_IMG_3591.png');"></div><div class="photo-code">[ THE_GAZER ]</div></div>
+        <div class="void-input text-right" style="top:350px;right:150px;"><div class="tag-line">01 / CHAR</div><textarea id="val_char" class="free-text" placeholder="观测宿体数据..."></textarea></div>
+        <div class="aesthetic-polaroid" style="top:562px;left:50px;transform:rotate(-3deg);"><div class="img-box" style="background-image:url('https://img.heliar.top/file/1778717776572_IMG_3593.png');"></div><div class="photo-code">[ THE_VESSEL ]</div></div>
+        <div class="void-input" style="top:590px;left:160px;"><div class="tag-line">02 / USER</div><textarea id="val_user" class="free-text" placeholder="献祭受体档案..."></textarea></div>
+        <div class="void-input text-right" style="top:720px;right:130px;"><div class="tag-line">03 / WORLD</div><textarea id="val_world" class="free-text" style="height:30px;" placeholder="界定场域切片..."></textarea></div>
+        <div class="manifest-btn btn-right" onclick="execFromCard()"><div class="btn-graphic"></div><div class="btn-text">提 取</div></div>
+    </div>
+
+    <!-- PAGE 02: 捏造 (图片装饰节点版) -->
+    <div id="page-2" class="page-layer">
+        <div class="page-title"><div class="zh">捏造</div><div class="en">SKETCH_MODE</div></div>
+        <svg class="red-web" viewBox="0 0 375 850" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 270,180 C 200,220 180,260 100,300" stroke="#8A0303" stroke-width="0.5" fill="none"/>
+            <path d="M 100,300 C 200,340 220,380 270,430" stroke="#8A0303" stroke-width="0.5" fill="none"/>
+            <path d="M 270,430 C 200,470 180,510 100,560" stroke="#8A0303" stroke-width="0.5" fill="none"/>
+
+            <circle cx="270" cy="180" r="2.5" fill="#8A0303"/>
+            <circle cx="100" cy="300" r="2.5" fill="#111"/>
+            <circle cx="270" cy="430" r="2.5" fill="#111"/>
+            <circle cx="100" cy="560" r="2.5" fill="#8A0303"/>
+        </svg>
+
+        
+        <div class="void-input text-right" style="top:150px;right:40px;"><div class="red-tag">[ CHAR ]</div><div class="tag-line">他是谁</div><input type="text" id="sk_char" class="sketch-input" style="text-align:right;width:180px;" placeholder="简述角色的身份或职业"></div>
+        <div class="void-input" style="top:280px;left:50px;"><div class="red-tag">[ USER ]</div><div class="tag-line">你是谁</div><input type="text" id="sk_user" class="sketch-input" style="width:180px;" placeholder="简述你在故事中的身份"></div>
+        <div class="void-input text-right" style="top:410px;right:40px;"><div class="red-tag">[ BOND ]</div><div class="tag-line">你们之间</div><input type="text" id="sk_relation" class="sketch-input" style="text-align:right;width:180px;" placeholder="一句话描述核心关系"></div>
+        <div class="void-input" style="top:540px;left:50px;"><div class="red-tag">[ DOMAIN ]</div><div class="tag-line">外界在哪讨论</div><input type="text" id="sk_forum" class="sketch-input" style="width:180px;" placeholder="如：校园墙 / 茶水间 / 留言簿"></div>
+        <div class="manifest-btn btn-right" onclick="execFromSketch()"><div class="btn-graphic"></div><div class="btn-text">捏 造</div></div>
+    </div>
+
+    <!-- PAGE 03: 拼图 -->
+    <div id="page-3" class="page-layer">
+        <div class="page-title"><div class="zh">万象拼图</div><div class="en">DOMAIN_PUZZLE</div></div>
+        <svg class="red-web" viewBox="0 0 375 850" xmlns="http://www.w3.org/2000/svg">
+            <line x1="70" y1="180" x2="70" y2="760" stroke="#111" stroke-width="0.2" stroke-dasharray="2 4"/>
+            <line x1="70" y1="360" x2="330" y2="360" stroke="#111" stroke-width="0.2"/>
+        </svg>
+        <div class="option-block" style="top:140px;left:50px;"><div class="red-tag">[ MEDIA_ARCHETYPE ]</div><div class="opt-label">传播媒介容器</div><div class="opt-choices" id="group_media"><span class="choice active">实体公共留痕 (公告栏/海报)</span> <span class="slash">/</span><span class="choice">虚拟匿名社交 (论坛/树洞)</span> <span class="slash">/</span><span class="choice">封闭式闲谈圈 (茶水间/内网)</span> <span class="slash">/</span><span class="choice">机密档案卷宗 (病历/审讯)</span></div></div>
+        <div class="option-block text-right" style="top:290px;right:30px;"><div class="red-tag">[ EMOTIONAL_CLIMATE ]</div><div class="opt-label">场域情绪气候</div><div class="opt-choices" style="width:180px;" id="group_climate"><span class="choice">极度严肃与高压纪律</span> <span class="slash">/</span><span class="choice active">失控的狂欢与造谣</span> <span class="slash">/</span><span class="choice">晦暗的禁忌暗流</span> <span class="slash">/</span><span class="choice">冷漠的客观陈述</span></div></div>
+        <div class="option-block" style="top:450px;left:50px;"><div class="red-tag">[ OBSERVER_STANCE ]</div><div class="opt-label">观测者生态位</div><div class="opt-choices" id="group_stance"><span class="choice">战栗的仰望者 (恐惧/慕强)</span> <span class="slash">/</span><span class="choice active">戏谑的旁观者 (吃瓜/打赌)</span> <span class="slash">/</span><span class="choice">嫉妒的敌对者 (嘲讽/唱衰)</span></div></div>
+        <div class="option-block" style="top:610px;left:50px;"><div class="red-tag">[ EVENT_HOOK ]</div><div class="opt-label">切入事件钩子</div><input type="text" id="val_hook" class="void-line-input" placeholder="简述一个引爆舆论的事件..."></div>
+        <div class="manifest-btn btn-left" onclick="execFromPuzzle()"><div class="btn-graphic" style="margin-left:20px;"></div><div class="btn-text">拼 接</div></div>
+    </div>
+    <!-- PAGE 04: 盲盒 -->
+    <div id="page-4" class="page-layer">
+        <div class="page-title"><div class="zh">全视之眼</div><div class="en">ENTROPY_ROULETTE</div></div>
+        <div class="radar-system">
+            <div class="radar-circle c1"></div><div class="radar-circle c2"></div><div class="radar-circle c3"></div>
+        </div>
+        <div class="void-input" style="top:120px;left:50px;width:260px;"><div class="red-tag">[ BRIEF ]</div><div class="tag-line">简述身份与关系</div><input type="text" id="bb_brief" class="sketch-input" style="width:260px;" placeholder="一句话概括双方身份与关系"></div>
+        <div class="variable-slot" style="top:260px;right:40px;text-align:right;"><div class="red-tag">[ VARIABLE_01 ]</div><div class="unknown-data" id="bb_slot1">██████</div></div>
+        <div class="variable-slot" style="top:370px;left:40px;"><div class="red-tag">[ VARIABLE_02 ]</div><div class="unknown-data" id="bb_slot2">██████</div></div>
+        <div class="variable-slot" style="top:480px;right:60px;text-align:right;"><div class="red-tag">[ VARIABLE_03 ]</div><div class="unknown-data" id="bb_slot3">██████</div></div>
+        <div class="roll-trigger" onclick="execBlindbox()">
+            <div class="roll-btn-icon"></div>
+            <div style="font-size:13px;font-weight:bold;letter-spacing:6px;">坍 缩</div>
+            <div style="font-family:'Courier New';font-size:9px;color:#8A0303;">[ INITIATE_ROLL ]</div>
+        </div>
+    </div>
+
+    <!-- PAGE 05: 枢纽 -->
+    <div id="page-5" class="page-layer">
+        <div class="page-title"><div class="zh">核心枢纽</div><div class="en">SYSTEM_NEXUS</div></div>
+        <div class="system-spine"></div>
+        <div class="option-block text-right" style="top:130px;right:50px;"><div class="red-tag">[ ACCESS_TOKEN ]</div><div class="opt-label" style="margin-bottom:6px;">虚数秘钥接入</div><input type="password" id="api_key" class="code-input" placeholder="必填：API Key"></div>
+        <div class="option-block" style="top:240px;left:60px;">
+            <div class="red-tag">[ ENDPOINT_URL ]</div><div class="opt-label" style="margin-bottom:6px;">协议回传节点</div>
+            <input type="text" id="api_url" class="code-input" value="https://api.openai.com/v1" placeholder="中转代理 URL">
+            <div class="opt-label" style="margin-top:25px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;width:220px;">
+                <span>算力模型载体</span>
+                <span id="btn_fetch" style="font-family:'Courier New';font-size:9px;color:#8A0303;border:1px solid #8A0303;padding:2px 4px;cursor:pointer;" onclick="fetchModels()">FETCH</span>
+            </div>
+            <select id="api_model" class="code-input"><option value="gpt-4o">gpt-4o</option><option value="gpt-3.5-turbo">gpt-3.5-turbo</option><option value="claude-3-opus-20240229">claude-3-opus</option></select>
+        </div>
+        <div class="option-block text-right" style="top:450px;right:50px;"><div class="red-tag">[ CHAOS_INDEX ]</div><div class="opt-label" style="margin-bottom:6px;">意识熵值测定</div><div class="deconstructed-slider" id="chaos-slider" data-temp="0.75" style="margin-left:auto;"><div class="slider-track"></div><div class="slider-fill"></div><div class="slider-thumb"></div><div class="slider-value">0.75</div></div></div>
+        <div class="option-block" style="top:570px;left:60px;"><div class="red-tag">[ BASE_DIRECTIVE ]</div><div class="opt-label" style="margin-bottom:6px;">底层戒律刻印</div><textarea class="void-box-input" placeholder="输入强制生效的文风约束..."></textarea></div>
+        <div class="manifest-btn btn-center" onclick="saveSettings();alert('系统设置已保存')"><div class="btn-graphic"></div><div class="btn-text">覆 写</div></div>
+    </div>
+
+    <!-- PAGE 06: 卷宗柜 -->
+    <div id="page-6" class="page-layer">
+        <div class="page-title"><div class="zh">卷宗柜</div><div class="en">ARCHIVE_VAULT</div></div>
+        <svg class="red-web" viewBox="0 0 375 850" xmlns="http://www.w3.org/2000/svg">
+            <line x1="187" y1="120" x2="187" y2="750" stroke="#111" stroke-width="0.2" stroke-dasharray="2 4"/>
+        </svg>
+        <div class="option-block" style="top:120px;left:50px;width:275px;">
+            <div class="red-tag">[ SAVED_FILES ]</div>
+            <div class="opt-label" style="margin-bottom:15px;">已归档卷宗</div>
+            <div id="archive-list" style="max-height:550px;overflow-y:auto;"></div>
+            <div style="margin-top:20px;font-family:'Courier New';font-size:9px;color:#888;letter-spacing:1px;">点击卷宗名可展开查看与复制</div>
+        </div>
+    </div>
+
+    <!-- 结果弹窗 -->
+    <div id="result-modal">
+        <div class="red-tag">[ SYSTEM_OUTPUT ]</div>
+        <div class="opt-label" style="font-size:20px;">观测结果坍缩</div>
+        <div style="display:flex;gap:15px;margin-bottom:10px;">
+            <span style="font-family:'Courier New';font-size:10px;color:#8A0303;cursor:pointer;border-bottom:1px solid #8A0303;" onclick="copyResult()">[ 复制 ]</span>
+            <span style="font-family:'Courier New';font-size:10px;color:#111;cursor:pointer;border-bottom:1px solid #111;" onclick="saveResult()">[ 保存TXT ]</span>
+            <span style="font-family:'Courier New';font-size:10px;color:#8A0303;cursor:pointer;border-bottom:1px solid #8A0303;" onclick="archiveResult()">[ 归档 ]</span>
+        </div>
+        <textarea id="result-text" readonly placeholder="等待数据汇入..."></textarea>
+        <div class="manifest-btn" style="position:relative;bottom:0;right:0;margin-top:20px;align-items:flex-start;" onclick="document.getElementById('result-modal').style.display='none'">
+            <div class="btn-text" style="color:#8A0303;margin-left:0;">关 闭 档 案</div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveSettings(){
+    var ids=['api_key','api_url','api_model','val_char','val_user','val_world','val_hook','sk_char','sk_user','sk_relation','sk_forum','bb_brief'];
+    ids.forEach(function(id){var el=document.getElementById(id);if(el)localStorage.setItem('kite_'+id,el.value);});
+    localStorage.setItem('kite_chaos',document.getElementById('chaos-slider').getAttribute('data-temp'));
+}
+function loadSettings(){
+    var ids=['api_key','api_url','val_char','val_user','val_world','val_hook','sk_char','sk_user','sk_relation','sk_forum','bb_brief'];
+    ids.forEach(function(id){var el=document.getElementById(id);var v=localStorage.getItem('kite_'+id);if(el&&v)el.value=v;});
+    var m=localStorage.getItem('kite_api_model');
+    if(m){var sel=document.getElementById('api_model');var found=false;for(var i=0;i<sel.options.length;i++){if(sel.options[i].value===m){found=true;break;}}if(!found)sel.add(new Option(m,m));sel.value=m;}
+    var t=localStorage.getItem('kite_chaos');
+    if(t){var p=t/2.0;document.querySelector('.slider-fill').style.width=(p*100)+'%';document.querySelector('.slider-thumb').style.left=(p*100)+'%';document.querySelector('.slider-value').innerText=t;document.getElementById('chaos-slider').setAttribute('data-temp',t);}
+    renderArchive();
+}
+document.querySelectorAll('input,textarea,select').forEach(function(el){el.addEventListener('change',saveSettings);});
+window.addEventListener('DOMContentLoaded',loadSettings);
+
+function switchPage(n){
+    document.querySelectorAll('.page-layer').forEach(function(p){p.style.display='none';});
+    document.querySelectorAll('.abstract-menu span').forEach(function(s){s.classList.remove('active');});
+    document.getElementById('page-'+n).style.display='block';
+    document.getElementById('nav-'+n).classList.add('active');
+    if(n===6)renderArchive();
+}
+
+document.querySelectorAll('.opt-choices').forEach(function(group){
+    group.querySelectorAll('.choice').forEach(function(choice){
+        choice.addEventListener('click',function(){
+            group.querySelectorAll('.choice').forEach(function(c){c.classList.remove('active');});
+            choice.classList.add('active');
+        });
+    });
+});
+
+var slider=document.getElementById('chaos-slider');var isDragging=false;
+function updateSlider(e){if(!isDragging)return;var rect=slider.getBoundingClientRect();var clientX=e.type.indexOf('touch')!==-1?e.touches[0].clientX:e.clientX;var x=clientX-rect.left;if(x<0)x=0;if(x>rect.width)x=rect.width;var p=x/rect.width;var t=(p*2).toFixed(2);slider.querySelector('.slider-fill').style.width=(p*100)+'%';slider.querySelector('.slider-thumb').style.left=(p*100)+'%';slider.querySelector('.slider-value').innerText=t;slider.setAttribute('data-temp',t);}
+slider.addEventListener('mousedown',function(e){isDragging=true;updateSlider(e);});
+document.addEventListener('mousemove',updateSlider);
+document.addEventListener('mouseup',function(){if(isDragging){isDragging=false;saveSettings();}});
+slider.addEventListener('touchstart',function(e){isDragging=true;updateSlider(e);});
+document.addEventListener('touchmove',function(e){if(isDragging)updateSlider(e);});
+document.addEventListener('touchend',function(){if(isDragging){isDragging=false;saveSettings();}});
+
+async function fetchModels(){
+    var apiKey=document.getElementById('api_key').value;var apiUrl=document.getElementById('api_url').value;var btn=document.getElementById('btn_fetch');var sel=document.getElementById('api_model');
+    if(!apiKey||!apiUrl){alert('请先填写 API Key 和代理 URL');return;}
+    btn.innerText='...';
+    try{
+        var url=apiUrl.replace(/\/chat\/completions\/?$/,'').replace(/\/$/,'')+'/models';
+        var r=await fetch(url,{method:'GET',headers:{'Authorization':'Bearer '+apiKey}});
+        if(!r.ok)throw new Error('状态码:'+r.status);
+        var d=await r.json();var models=d.data.map(function(m){return m.id;});
+        if(models.length>0){sel.innerHTML='';models.forEach(function(m){var o=document.createElement('option');o.value=m;o.innerText=m;sel.appendChild(o);});}
+        btn.innerText='OK';alert('成功拉取 '+models.length+' 个模型');saveSettings();
+    }catch(e){btn.innerText='ERR';alert('拉取失败: '+e.message);}
+    setTimeout(function(){btn.innerText='FETCH';},2500);
+}
+
+function buildPrompt(charInfo,userInfo,extraContext,forumType,isRandom){
+return '你是一个专精于AI角色扮演世界书设定的架构师。你需要生成一份可以直接粘贴进角色扮演世界书的【论坛/场域设定文档】。\n\n这份文档将被另一个AI在角色扮演中读取，那个AI会据此自动生成该论坛中路人NPC的发帖和跟帖。\n\n【输入信息】\n角色(CHAR)的身份：'+charInfo+'\n使用者(USER)的身份：'+userInfo+'\n补充：'+extraContext+'\n论坛/场域类型：'+forumType+(isRandom?'\n（论坛类型由你自由发挥，选一个最有趣、最适合这对关系的。可以是校园墙、茶水间、酒馆公告板、船员留言簿、匿名论坛、后宫侍女窃语、军营涂鸦……任何你觉得有趣的都行。）':'')+'\n\n【你必须模仿的标杆风格】\n"这是一本被钉在船舱走廊墙上的破旧留言簿，属于旗舰上的船员们。任何船员都可以在上面写东西，从日常吐槽到八卦到匿名爆料都有。这本簿子理论上船长不会来看，但谁也不确定。"\n\n"发帖人必须是船上的船员，不是船长本人也不是那个贵族本人。每个人有自己的岗位、性格和对船长的态度。有人忠心耿耿，有人只是打工混饭，有人八卦成性，有人沉默寡言偶尔冒一句。"\n\n"语气要像真正的船员在写东西，口语化、随意、有错别字也没关系。不要文绉绉的，不要像在写报告。"\n\n【生成铁律】\n1. 直接输出完整的世界书设定文档。不要输出系统指令、触发代码、黑话词典。\n2. 不要加时间戳格式、不要加用户ID格式，平台会自动渲染。\n3. 语气必须口语化、随意、像真人写东西。绝对禁止"总而言之""不可否认""充斥着"这类AI味的词。\n4. NPC必须有各自具体的身份、说话风格和信息盲区，不能全知全能。\n5. 纯文本，不用Markdown列表或表格，不要编号，用自然段落组织。\n\n【输出必须自然包含】\n给论坛/场域起一个有沉浸感的具体名字，一两句话说明这是什么地方。\n简述两个核心人物（绝不直接发帖），写明外界怎么称呼他们、最近能观察到的反常行为。\n定义谁会在这里发帖（列举具体NPC身份），简单几笔勾勒各自说话风格和立场。\n说明帖子可以是什么类型（根据场域自然适配）。\n说明回复代表其他NPC的自然反应（附和、反驳、起哄、让人闭嘴等）。\n写明语气要求（口语化、随意、不文绉绉）。\n最后附上输出格式规则：输出必须是纯JSON，不要在JSON外面加任何文字或代码块标记。直接输出JSON本身。content中双引号用反斜杠转义，换行用\\n表示。';}
+
+async function callAPI(prompt){
+    var apiKey=document.getElementById('api_key').value;var apiUrl=document.getElementById('api_url').value;var apiModel=document.getElementById('api_model').value||'gpt-4o';var temp=parseFloat(document.getElementById('chaos-slider').getAttribute('data-temp'))||0.75;
+    if(!apiKey){alert('请先前往 [05 枢纽] 配置密钥');switchPage(5);return;}
+    var modal=document.getElementById('result-modal');var box=document.getElementById('result-text');
+    modal.style.display='flex';box.value='>>> 神经接入中...\n>>> 正在向 ['+apiModel+'] 请求世界书坍缩...';
+    try{
+        var r=await fetch(apiUrl.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:apiModel,messages:[{role:'system',content:prompt},{role:'user',content:'开始生成世界书设定文档。'}],temperature:temp})});
+        if(!r.ok)throw new Error('状态码:'+r.status);
+        var d=await r.json();box.value=d.choices[0].message.content;
+    }catch(e){box.value='>>> 连接中断：\n'+e.message+'\n\n请检查枢纽页设置。';}
+}
+
+function execFromCard(){
+    var c=document.getElementById('val_char').value||'未提供';var u=document.getElementById('val_user').value||'未提供';var w=document.getElementById('val_world').value||'现代';
+    callAPI(buildPrompt(c,u,'世界观底色：'+w,'根据角色卡的世界观自动选择最合适的论坛类型',false));
+}
+function execFromSketch(){
+    var c=document.getElementById('sk_char').value||'未提供';var u=document.getElementById('sk_user').value||'未提供';var rel=document.getElementById('sk_relation').value||'未提供';var forum=document.getElementById('sk_forum').value||'';
+    callAPI(buildPrompt(c,u,'两人关系：'+rel,forum||'由你自由发挥',!forum));
+}
+function execFromPuzzle(){
+    var c=document.getElementById('sk_char').value||document.getElementById('val_char').value||'未提供';
+    var u=document.getElementById('sk_user').value||document.getElementById('val_user').value||'未提供';
+    var ctx=document.getElementById('sk_relation').value||document.getElementById('val_world').value||'现代';
+    var media=document.querySelector('#group_media .active').innerText;var climate=document.querySelector('#group_climate .active').innerText;var stance=document.querySelector('#group_stance .active').innerText;var hook=document.getElementById('val_hook').value||'';
+    var extra=ctx+'\n论坛整体氛围偏向：'+climate+'\n发帖的人主要是：'+stance+(hook?'\n最近引爆舆论的事件：'+hook:'');
+    callAPI(buildPrompt(c,u,extra,media,false));
+}
+function execBlindbox(){
+    var brief=document.getElementById('bb_brief').value||'未提供';
+    var hints=['论坛名称...','论坛氛围...','NPC群像...'];
+    var ids=['bb_slot1','bb_slot2','bb_slot3'];
+    for(var i=0;i<ids.length;i++){
+        var el=document.getElementById(ids[i]);
+        el.style.background='none';el.style.webkitTextFillColor='#8A0303';el.style.color='#8A0303';
+        el.style.fontFamily='"Noto Serif SC",serif';el.style.fontWeight='bold';el.style.letterSpacing='1px';el.style.fontSize='11px';
+        el.innerText=hints[i];
+    }
+    setTimeout(function(){callAPI(buildPrompt(brief,'（包含在简述中）','（包含在简述中）','',true));},800);
+}
+
+function copyResult(){
+    var t=document.getElementById('result-text').value;if(!t)return;
+    var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('已复制到剪贴板');
+}
+function saveResult(){
+    var t=document.getElementById('result-text').value;if(!t)return;
+    var b=new Blob([t],{type:'text/plain;charset=utf-8'});var a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='众生相_世界书设定.txt';a.click();
+}
+function archiveResult(){
+    var t=document.getElementById('result-text').value;if(!t)return;
+    var archives=JSON.parse(localStorage.getItem('kite_archives')||'[]');
+    var name=prompt('为这份卷宗命名：','卷宗_'+new Date().toLocaleDateString());
+    if(!name)return;
+    archives.unshift({name:name,content:t,date:new Date().toLocaleString()});
+    localStorage.setItem('kite_archives',JSON.stringify(archives));
+    alert('已归档至 [06 卷宗柜]');
+}
+function renderArchive(){
+    var container=document.getElementById('archive-list');
+    var archives=JSON.parse(localStorage.getItem('kite_archives')||'[]');
+    if(archives.length===0){container.innerHTML='<div style="font-size:11px;color:#888;font-family:Courier New,monospace;">[ EMPTY ]</div>';return;}
+    container.innerHTML='';
+    for(var i=0;i<archives.length;i++){
+        var item=archives[i];
+        var div=document.createElement('div');
+        div.style.cssText='margin-bottom:15px;border-bottom:0.5px solid #ddd;padding-bottom:10px;';
+        div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;font-weight:bold;color:#111;cursor:pointer;" onclick="toggleArchive('+i+')">'+item.name+'</span><span style="font-family:Courier New;font-size:8px;color:#888;">'+item.date+'</span></div><div id="arc_'+i+'" style="display:none;margin-top:8px;"><textarea readonly style="width:100%;height:120px;background:rgba(0,0,0,0.02);border:none;border-left:2px solid #8A0303;padding:8px 10px;font-family:Noto Serif SC,serif;font-size:11px;line-height:1.6;color:#111;resize:none;outline:none;">'+item.content+'</textarea><div style="display:flex;gap:10px;margin-top:5px;"><span style="font-family:Courier New;font-size:9px;color:#8A0303;cursor:pointer;border-bottom:1px solid #8A0303;" onclick="copyArchive('+i+')">[ 复制 ]</span><span style="font-family:Courier New;font-size:9px;color:#888;cursor:pointer;border-bottom:1px solid #888;" onclick="deleteArchive('+i+')">[ 删除 ]</span></div></div>';
+        container.appendChild(div);
+    }
+}
+function toggleArchive(i){var el=document.getElementById('arc_'+i);el.style.display=el.style.display==='none'?'block':'none';}
+
+function copyArchive(i){var archives=JSON.parse(localStorage.getItem('kite_archives')||'[]');var ta=document.createElement('textarea');ta.value=archives[i].content;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('已复制');}
+function deleteArchive(i){var a=JSON.parse(localStorage.getItem('kite_archives')||'[]');a.splice(i,1);localStorage.setItem('kite_archives',JSON.stringify(a));renderArchive();}
+</script>
+</body>
+</html>
